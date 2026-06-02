@@ -1,0 +1,18 @@
+# Prompt: Controller Impact Check
+
+Analyze the controller and the migrated Thymeleaf template.
+
+Check whether existing model attributes are sufficient.
+
+Rules:
+- Do not rename model attributes.
+- Do not move business logic to the view.
+- If JSP scriptlet logic existed, move logic to controller/service/helper.
+- Keep return view name same when possible.
+
+Output:
+1. Controller changes required
+2. Model attributes required by Thymeleaf
+3. Missing attributes
+4. Suggested code patch
+5. Tests to add

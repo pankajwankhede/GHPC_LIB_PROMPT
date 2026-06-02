@@ -1,0 +1,165 @@
+# Prompt: Remove JSP ViewResolver and Add Thymeleaf Dependency
+
+Act as a Senior Spring Boot 3.x Migration Architect.
+
+Goal:
+Migrate the project from JSP/JSTL view rendering to Thymeleaf with minimum controller changes.
+
+Scope:
+- Java 17
+- Spring Boot 3.x.x
+- Spring MVC web application
+- Existing controllers return logical view names like `return "login";`, `return "user/profile";`
+- Existing JSP pages use JSTL for conditions, loops, and model access
+
+Tasks:
+
+1. Inspect build files
+   - If `build.gradle` or `build.gradle.kts` exists, add Thymeleaf dependency.
+   - If `pom.xml` exists, add Thymeleaf dependency.
+   - Do not add duplicate dependencies.
+
+2. Add Thymeleaf dependency
+
+For Gradle Groovy:
+```gradle
+implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+```
+
+For Gradle Kotlin:
+```kotlin
+implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+```
+
+For Maven:
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+
+3. Remove JSP/JSTL dependencies if no JSP pages remain
+
+Remove only after validating all JSP pages are migrated:
+
+Gradle examples:
+```gradle
+implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api'
+runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl'
+implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+```
+
+Maven examples:
+```xml
+<dependency>
+    <groupId>jakarta.servlet.jsp.jstl</groupId>
+    <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.glassfish.web</groupId>
+    <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.apache.tomcat.embed</groupId>
+    <artifactId>tomcat-embed-jasper</artifactId>
+</dependency>
+```
+
+4. Remove JSP ViewResolver configuration
+
+Search for and remove/disable:
+
+```java
+@Bean
+public InternalResourceViewResolver viewResolver() {
+    InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+    resolver.setPrefix("/WEB-INF/views/");
+    resolver.setSuffix(".jsp");
+    return resolver;
+}
+```
+
+Also remove imports:
+
+```java
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
+```
+
+5. Remove JSP view properties
+
+Remove or comment these properties:
+
+```properties
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+```
+
+6. Add Thymeleaf properties
+
+For local/dev:
+
+```properties
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+spring.thymeleaf.cache=false
+spring.thymeleaf.mode=HTML
+spring.thymeleaf.encoding=UTF-8
+```
+
+For production, prefer:
+
+```properties
+spring.thymeleaf.cache=true
+```
+
+7. Preserve controller view names
+
+Do not change controllers unless required.
+
+Existing controller:
+
+```java
+@GetMapping("/login")
+public String login(Model model) {
+    model.addAttribute("realm", "BCC");
+    return "login";
+}
+```
+
+Expected Thymeleaf file:
+
+```text
+src/main/resources/templates/login.html
+```
+
+For subfolder view name:
+
+```java
+return "admin/users";
+```
+
+Expected file:
+
+```text
+src/main/resources/templates/admin/users.html
+```
+
+8. Migration validation
+
+Verify:
+- Application starts without JSP ViewResolver conflict
+- `/templates/**/*.html` files are resolved
+- Controller `return "viewName"` works
+- No `ClassNotFoundException` for JSTL
+- No Whitelabel error caused by missing template
+- No circular view path error
+- No duplicate ViewResolver bean conflict
+
+Output required:
+1. Build file changes
+2. Removed JSP ViewResolver code
+3. Added Thymeleaf properties
+4. Controller impact summary
+5. Risk list
+6. Final migration checklist
